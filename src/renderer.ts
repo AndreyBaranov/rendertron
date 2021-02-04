@@ -48,6 +48,7 @@ export class Renderer {
   async serialize(
     requestUrl: string,
     isMobile: boolean,
+    dimensions: ViewportDimensions,
     timezoneId?: string
   ): Promise<SerializedResponse> {
     /**
@@ -57,7 +58,7 @@ export class Renderer {
     function stripPage() {
       // Strip only script tags that contain JavaScript (either no type attribute or one that contains "javascript")
       const elements = document.querySelectorAll(
-        'script:not([type]), script[type*="javascript"], script[type="module"], link[rel=import]'
+        'script:not([type]), script[type*="javascript"], script[type="module"], link[rel=import], link[rel=prefetch][as=script]'
       );
       for (const e of Array.from(elements)) {
         e.remove();
@@ -96,8 +97,8 @@ export class Renderer {
     // Page may reload when setting isMobile
     // https://github.com/GoogleChrome/puppeteer/blob/v1.10.0/docs/api.md#pagesetviewportviewport
     await page.setViewport({
-      width: this.config.width,
-      height: this.config.height,
+      width: dimensions.width,
+      height: dimensions.height,
       isMobile,
     });
 
@@ -125,15 +126,15 @@ export class Renderer {
     page.evaluateOnNewDocument('ShadyDOM = {force: true}');
     page.evaluateOnNewDocument('ShadyCSS = {shimcssproperties: true}');
 
-    await page.setRequestInterception(true);
+    // await page.setRequestInterception(true);
 
-    page.addListener('request', (interceptedRequest: puppeteer.Request) => {
-      if (this.restrictRequest(interceptedRequest.url())) {
-        interceptedRequest.abort();
-      } else {
-        interceptedRequest.continue();
-      }
-    });
+    // page.addListener('request', (interceptedRequest: puppeteer.Request) => {
+    //   if (this.restrictRequest(interceptedRequest.url())) {
+    //     interceptedRequest.abort();
+    //   } else {
+    //     interceptedRequest.continue();
+    //   }
+    // });
 
     let response: puppeteer.Response | null = null;
     // Capture main frame response. This is used in the case that rendering

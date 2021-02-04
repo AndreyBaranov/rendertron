@@ -150,9 +150,15 @@ export class Rendertron {
 
     const mobileVersion = 'mobile' in ctx.query ? true : false;
 
+    const dimensions = {
+      width: Number(ctx.query['width']) || this.config.width,
+      height: Number(ctx.query['height']) || this.config.height
+    };
+
     const serialized = await this.renderer.serialize(
       url,
       mobileVersion,
+      dimensions,
       ctx.query.timezoneId
     );
 
