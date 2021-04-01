@@ -217,18 +217,24 @@ export class Renderer {
       })
       .catch(() => undefined);
 
-    // Remove script & import tags.
-    await page.evaluate(stripPage);
-    // Inject <base> tag with the origin of the request (ie. no path).
-    const parsedUrl = url.parse(requestUrl);
-    await page.evaluate(
-      injectBaseHref,
-      `${parsedUrl.protocol}//${parsedUrl.host}`,
-      `${dirname(parsedUrl.pathname || '')}`
-    );
+    let result = '';
+    try {
+      // Remove script & import tags.
+      await page.evaluate(stripPage);
+      // Inject <base> tag with the origin of the request (ie. no path).
+      const parsedUrl = url.parse(requestUrl);
+      await page.evaluate(
+        injectBaseHref,
+        `${parsedUrl.protocol}//${parsedUrl.host}`,
+        `${dirname(parsedUrl.pathname || '')}`
+      );
 
-    // Serialize page.
-    const result = (await page.content()) as string;
+      // Serialize page.
+      result = (await page.content()) as string;
+    } catch (error) {
+      console.log(error);
+      statusCode = 500;
+    }
 
     await page.close();
     if (this.config.closeBrowser) {
